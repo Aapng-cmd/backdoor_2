@@ -120,7 +120,7 @@ def check_clients(clients):
 clients_d = {}
 clients = {}
 
-token = '6086061913:AAHiEN1JDxrdJnsm0KFcfygTK8nyjRvBIZ4'
+token = ''
 # proxy = ('socks5://189.100.122.140:35759/', 'socks5://75.110.224.94:45554/', 'socks5://189.63.89.168:43216/', 'socks5://50.30.205.71:45554/', '')[ri(0,3)]
 # proxy = 'socks5h://79.104.34.214:1080'
 proxy = 'socks5://161.77.114.50:53904'
