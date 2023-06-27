@@ -2,8 +2,11 @@ import telebot
 from telebot import apihelper # Нужно для работы Proxy
 from http.server import BaseHTTPRequestHandler
 
-import os, socks
+import os, socks, socket
+from time import sleep
 from ast import literal_eval
+
+from legend import server_legacy
 
 def prety(clients):
     q = ""
@@ -111,7 +114,7 @@ def check_clients(clients):
                 id = int(el[0])
                 clients[id] = literal_eval(el[-1])
             f.close()
-        # os.remove("temp.db")
+        os.remove("temp.db")
         return clients
     except FileNotFoundError:
         return clients
@@ -123,16 +126,20 @@ clients = {}
 token = '6086061913:AAHiEN1JDxrdJnsm0KFcfygTK8nyjRvBIZ4'
 # proxy = ('socks5://189.100.122.140:35759/', 'socks5://75.110.224.94:45554/', 'socks5://189.63.89.168:43216/', 'socks5://50.30.205.71:45554/', '')[ri(0,3)]
 # proxy = 'socks5h://79.104.34.214:1080'
-proxy = 'socks5://161.77.114.50:53904'
+proxy = 'socks5://135.125.68.145:1080'
 
 # bot = aiogram.Bot(token=token, proxy=proxy)
-apihelper.proxy = {'https': proxy}  # Передаём Proxy из файла config.py
-bot = telebot.TeleBot(token)  # Передаём токен из файла config.py
+apihelper.proxy = {'https': proxy}
+bot = telebot.TeleBot(token)
 
+# keyboards
 keyboard1 = telebot.types.ReplyKeyboardMarkup()
-keyboard1.row('/start','/check')
+keyboard1.row('/check')
 
-# Тут работаем с командой start
+keyboard2 = telebot.types.ReplyKeyboardMarkup()
+keyboard2.row('/connect','/check', "/change_alias")
+
+
 @bot.message_handler(commands=['start'])
 def welcome_start(message):
     bot.send_message(message.chat.id, 'Приветствую тебя user', reply_markup=keyboard1)
@@ -145,7 +152,48 @@ def check(message):
     clients_d = check_clients(clients_d)
     for el in list(clients_d):
         perm = clients_d[el]
-        clients[el] = Connect(user_cle=perm['user_cle'], pid_cle=perm['pid_cle'], pwd_cle=perm['pwd_cle'], clientip_cle=perm['clientip_cle'], server_address=perm['server_address'], alias_cle=perm['alias_cle'])
-    bot.send_message(message.chat.id, prety(clients), reply_markup=keyboard1)
+        clients[str(el)] = Connect(user_cle=perm['user_cle'], pid_cle=perm['pid_cle'], pwd_cle=perm['pwd_cle'], clientip_cle=perm['clientip_cle'], server_address=perm['server_address'], alias_cle=perm['alias_cle'])
+    bot.send_message(message.chat.id, prety(clients), reply_markup=keyboard2)
+
+
+@bot.message_handler(commands=['change_alias'])
+def ch_al(message):
+    bot.send_message(message.chat.id, "Under construction")
+    '''
+    global clients
+    _, al_1, al_2 = message.text.split()
+    clients[al_2] = clients.pop(al_1)
+    clients[al_2].alias = al_2
+    print(clients)
+    bot.send_message(message.chat.id, prety(clients), reply_markup=keyboard2)
+    '''
+
+
+@bot.message_handler(commands=['connect'])
+def connect(message):
+    global culient
+    global cur_pwd
+    try:
+        al = message.text.split()[-1]
+        Client = clients.get(al)
+        Client.initiate()
+        while True:
+            cur_pwd = Client.pwd_cle
+            culient = Client
+            msg = bot.send_message(message.chat.id, f"{Client.clientip_cle}:{cur_pwd} >> ")
+            bot.register_next_step_handler(msg, conn)
+            break
+        Client.close()
+    except:
+        pass
+
+def conn(message):
+    global culient
+    global cur_pwd
+    com = message.text
+    server_legacy.MAIN(command=com, client=culient.client)
+    culient.pwd_cle = culient.recv(1024).decode('cp65001')
+
+
 
 bot.polling()

@@ -4,7 +4,7 @@ import socketserver
 from threading import Thread
 from legend import server_legacy
 
-import socket, base64, ssl
+import socket, base64
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import unquote
 
