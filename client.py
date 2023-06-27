@@ -32,6 +32,8 @@ url = 'http://' + ip + ':' + str(port) + '/'
 # c_len = len(data.get('user')) + len(data.get('pid')) + len(data.get('pwd')) + 10
 creds = ('user', 'pass')
 
+print('ok')
+
 while True:
     if (requests.post(url, data=data, auth=creds, headers=headers)).status_code == 200:
         break

