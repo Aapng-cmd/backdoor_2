@@ -1,4 +1,5 @@
-
+from legend import client_legacy
+import socket, time
 
 s = socket.socket(2, 1)
 s.bind(('', 9099))

