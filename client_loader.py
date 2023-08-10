@@ -50,7 +50,7 @@ def show_geo(public_ip=None):
         return
 
 
-ip, port = ("acae-92-118-75-80.ngrok-free.app", 3333)
+ip, port = ("", 3333)
 shell_addr = ("", 8081)
 
 # os.system('chcp 65001')
