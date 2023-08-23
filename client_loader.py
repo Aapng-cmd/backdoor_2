@@ -27,7 +27,11 @@ class Encryptor:
         with open(fn, "rb") as f:
             data = f.read()
         with open(fn, "w", encoding="utf-8") as f:
-            f.write(self.__decrypt(data))
+            data = self.__decrypt(data)
+            # data = str(data)
+            # print(data)
+            # data = str(base64.b64decode(data))[2:-1]
+            f.write(data)
 
 # ------------------END---------------
 
@@ -80,6 +84,7 @@ def decrypt_folder(name, key):
     for name in names:
         if os.path.isfile("test\\" + fn + "\\" + name):
             e.decrypt("test\\" + fn + "\\" + name)
+
     del e
     return fn
 
