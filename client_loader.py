@@ -102,9 +102,11 @@ def get_files(ip, status="update"):
     q = requests.post(url, auth=creds, data=data)
     z = zipfile.ZipFile(BytesIO(q.content))
     z.extractall("./test")
-    _ = decrypt_folder("test", key)
+    # _ = decrypt_folder("test", key)
+    _ = os.listdir("test")[0]
     shutil.move(f"test/{_}", "./")
     os.rmdir("test")
+    os.putenv("test", k)
     return _
 
 
