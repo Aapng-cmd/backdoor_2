@@ -1,8 +1,10 @@
 import pyshark, subprocess
 
 
-capture = pyshark.LiveCapture(interface='loop')
+# set an analyzer for handshakes/ http/s traffic/ password/username searching
 
-for packet in capture.sniff_continuously(packet_count=5):
+capture = pyshark.LiveCapture(interface='Беспроводная сеть', display_filter='tcp')
+
+for packet in capture.sniff_continuously(packet_count=1000):
     print('Just arrived:', packet)
 
