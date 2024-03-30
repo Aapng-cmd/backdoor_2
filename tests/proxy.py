@@ -1,5 +1,5 @@
 import socket
-import threading
+import threading, requests
 
 
 def extract_host_port_from_request(request):
@@ -46,11 +46,17 @@ s.bind(('127.0.0.1', port))
 s.listen(10)
 
 client, addr = s.accept()
+c2c_server = "http://127.0.0.1:65000/"
+
+sess = request.Session()
 
 while True:
     try:
         req = client.recv(4096)
+        #TODO: открой основной сервак и сделай хуки через него на прокси страницу/порт, что зазочешь
+        s.post(c2c_server, data={"req": req})
         # print(req.decode())
+        req = requests.get(c2c_server + "ans")
         data = recv(req)
         
         if len(data) > 0: client.sendall(data)
