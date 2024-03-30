@@ -13,8 +13,8 @@ flag = False
 
 mydb = mysql.connector.connect(
     host="localhost",
-    user="",
-    password="",
+    user="worker",
+    password="forwh4t_subnet",
     database="net"
 )
 
@@ -133,7 +133,7 @@ def send_all(clients, command):
 
 host = socket.getaddrinfo(socket.gethostname(), None)
 ipv4_addresses = [i[4][0] for i in host if i[0] == socket.AF_INET]
-print(ipv4_addresses[0])
+print(ipv4_addresses[0], "8000")
 server_address = ("127.0.0.1", 8000)
 shell_address = ('', 8081)
 
@@ -146,7 +146,4 @@ server.start()
 while True:
     if flag:
         print(req_head)
-    
-        
-        
         flag = False

