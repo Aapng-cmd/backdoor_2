@@ -15,3 +15,9 @@ CREATE TABLE computers
 	`ip` varchar(20),
 	`geo` varchar(1024)
 );
+
+CREATE TABLE proxies
+(
+	`cookie` varchar(64),
+	`proxy` varchar(400)
+);
