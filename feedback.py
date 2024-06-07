@@ -1,7 +1,7 @@
 import requests, subprocess, os, zipfile
 
 
-server_name = "https://cgsg.pml30.ru/subfile.php"
+server_name = ""
 def zipdir(path, ziph):
     # ziph is zipfile handle
     for root, dirs, files in os.walk(path):
