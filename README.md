@@ -52,3 +52,7 @@ script for interacting with infected computer via client
 * BUT:
 *   s.py has to be a script for making virus runs, when computer wakes up
 *   side_encryptor.py is a smth very good encryptor, which I stole from smbd and do not use (use encryptor.py (even if it is weak (will be improved)))
+
+# TODO
+* Create a full listener for new folders and make the rat spread into those files
+* Make a fully pinning to a system with clones
